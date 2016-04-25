@@ -1,16 +1,46 @@
 <?php
 
+/**
+ * Converted into code
+ * - Environments
+ * - Domain
+ * - Aggregate
+ * - Entities
+ * - Invariants
+ */
+
+/**
+ * To be converted into code
+ * - ValueObjects
+ * - Events
+ * - Commands
+ * - State properties
+ * - Command Handlers
+ * - Event Handlers
+ */
+
 # Environment
 //create environment 'develop-0.0.1';
-$environment->create('develop-0.0.1');
+$environment = new Environment('develop-0.0.1');
 
 # Domain and Context
 //using environment 'develop-0.0.1';
-$environment->using('develop-0.0.1');
+
+$environment = $environment_repo->fetch('develop-0.0.1');
+$environment->using();
 
 //create domain 'e-commerce';
-$domain->create('e-commerce');
+
+$environment->add_domain($domain);
+$domain = new Domain('e-commerce');
 //create context 'shopping' for domain 'e-commerce';
+
+$domain->add_context($context);
+$context = new Context('shopping');
+
+//create aggregate 'carts';
+$context->add_aggregate($aggregate);
+$aggregate = new Aggregate('carts');
 
 # Value Objects and Entities
 
@@ -24,22 +54,20 @@ create value 'quantity' validated by (
 );
 */
 
+//create entity 'product' (id, quantity) as (identifier, value\quantity);
+$context->add_entity($entity);
+
+$entity = new Entity('product', $arguments);
+
+$arguments = new Arguments();
+$arguments->add('id', 'identifier');
+$arguments->add('quantity', 'value\quantity');
+
 /*
-create entity 'product' (id, quantity) as (identifier, value\quantity);
-
-create aggregate 'carts';
-
 # Created
 within aggregate 'carts':
 {
 	create boolean 'is_created' defaults (false);
-
-	create invariant 'created' satisfied by (
-		<:
-			from aggregate
-			check is_created == true
-		:>
-	);
 
 	create identifier 'shopper_id' defaults (null);
 
@@ -57,13 +85,6 @@ within aggregate 'carts':
 {
 	create boolean 'is_checked_out' defaults (false);
 
-	create invariant 'checked-out' satisfied by (
-		<:
-			from aggregate
-			check is_checked_out == true
-		:>
-	);
-
 	create event 'checked-out' handled by (
 		<:
 			update aggregate
@@ -76,27 +97,13 @@ within aggregate 'carts':
 within aggregate 'carts':
 {
 	create counter 'products_in_cart' defaults (0);
-
-	create invariant 'is-empty' satisfied by (
-		<:
-			from aggregate
-			check products_in_cart == 0
-		:>
-	);
-
+ * 
 	create event 'empty';
 };
 
 # Full
 within aggregate 'carts':
 {
-	create invariant 'is-full' satisfied by (
-		<:
-			from aggregate
-			check products_in_cart == 10
-		:>
-	);
-
 	create event 'full';
 };
 
@@ -104,13 +111,6 @@ within aggregate 'carts':
 within aggregate 'carts':
 {
 	create index 'products';
-
-	create invariant 'product-exists' (product_id) as (identifier) satisfied by (
-		<:
-			from aggregate
-			check exists in index 'products' (product_id)
-		:>
-	);
 
 	create event 'product-added' (product) as (entity\product) handled by (
 		<:
@@ -131,43 +131,6 @@ within aggregate 'carts':
 	create event 'product-quantity-changed' (product_id, quantity) as (identifier, value\quantity);
 };
 */
-
-/*
-within aggregate 'carts':
-{
-	create invariant 'shopper-has-active-cart' (shopper_id) as (identifier) satisfied by (
-		<:
-			from all
-				count as cart_count
-			where shopper_id == shopper_id
-				and is_created == true
-				and is_checked_out == false
-			check cart_count > 0
-		:>
-	);
-};
-*/
-$aggregate = $aggregate_repo->fetch('carts');
-
-$aggregate->add_invariant($invariant);
-
-$invariant = new Invariant('shopper-has-active-cart', $arguments, $invariant_query);
-
-$arguments = new Arguments();
-$arguments->add('shopper_id', 'identifier');
-
-$invariant_query = new InvariantQuery();
-$invariant_query->from_all($select_statement)
-        ->where($where_statement)
-        ->check($check_statement);
-
-$select_statement = new SelectStatement('count', 'as', 'cart_count');
-$where_statment = new WhereStatement();
-$where_statment->where('shopper_id', '==', 'shopper_id')
-        ->and_where('is_created', '==', true)
-        ->and_where('is_checked_out', '==', false);
-$check_statement = new CheckStatement();
-$check_statement->check('cart_count', '>', '0');
 
 /*
 # Commands
