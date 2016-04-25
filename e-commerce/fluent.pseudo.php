@@ -7,16 +7,21 @@
  * - Aggregate
  * - Entities
  * - Invariants
+ * - ValueObjects
  */
 
 /**
  * To be converted into code
- * - ValueObjects
  * - Events
  * - Commands
  * - State properties
  * - Command Handlers
  * - Event Handlers
+ */
+
+/**
+ * Notes:
+ * Need more examples of ValueObjects
  */
 
 # Environment
@@ -25,16 +30,14 @@ $environment = new Environment('develop-0.0.1');
 
 # Domain and Context
 //using environment 'develop-0.0.1';
-
 $environment = $environment_repo->fetch('develop-0.0.1');
 $environment->using();
 
 //create domain 'e-commerce';
-
 $environment->add_domain($domain);
 $domain = new Domain('e-commerce');
-//create context 'shopping' for domain 'e-commerce';
 
+//create context 'shopping' for domain 'e-commerce';
 $domain->add_context($context);
 $context = new Context('shopping');
 
@@ -43,9 +46,6 @@ $context->add_aggregate($aggregate);
 $aggregate = new Aggregate('carts');
 
 # Value Objects and Entities
-
-//for domain 'e-commerce' in context 'shopping';
-
 /*
 create value 'quantity' validated by (
 	<:
@@ -53,6 +53,12 @@ create value 'quantity' validated by (
 	:>
 );
 */
+$context->add_value_object($value_object);
+
+$value_object = new ValueObject('quantity');
+$value_object->validated_by($check_statement);
+$check_statement = new CheckStatement();
+$check_statement->check('>', '0');
 
 //create entity 'product' (id, quantity) as (identifier, value\quantity);
 $context->add_entity($entity);
