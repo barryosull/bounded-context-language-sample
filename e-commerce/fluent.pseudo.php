@@ -24,7 +24,6 @@
  * Need more examples of ValueObjects
  * Index should probably define its type, eg (Product)
  * Not happy with update statements, they need work/rejigging
- * "Arguments" objects are really "Properties"
  */
 
 # Environment
@@ -66,10 +65,10 @@ $check_statement->check('>', '0');
 //create entity 'product' (id, quantity) as (identifier, value\quantity);
 $context->add_entity($entity);
 
-$entity = new Entity('product', $arguments);
-$arguments = new Arguments();
-$arguments->add('id', 'identifier');
-$arguments->add('quantity', 'value\quantity');
+$entity = new Entity('product', $parameters);
+$parameters = new Parameters();
+$parameters->add('id', 'identifier');
+$parameters->add('quantity', 'value\quantity');
 
 
 /*
@@ -97,9 +96,9 @@ within aggregate 'carts':
 };
 */
 $aggregate->add_event($event);
-$event = new Event('created', $arguments);
-$arguments = new Arguments();
-$arguments->add('shopper_id', 'identifier');
+$event = new Event('created', $parameters);
+$parameters = new Parameters();
+$parameters->add('shopper_id', 'identifier');
 
 $aggregate->add_event_handler($event_handler);
 $event_handler = new EventHandler($event, $update_statment);
@@ -129,8 +128,8 @@ within aggregate 'carts':
 };
 */
 $aggregate->add_event($event);
-$event = new Event('checked-out', $arguments);
-$arguments = new Arguments();
+$event = new Event('checked-out', $parameters);
+$parameters = new Parameters();
 
 $aggregate->add_event_handler($event_handler);
 $event_handler = new EventHandler($event, $update_statment);
@@ -148,8 +147,8 @@ within aggregate 'carts':
 $aggregate->add_property('products_in_cart', 'counter', 0);
 
 $aggregate->add_event($event);
-$event = new Event('empty', $arguments);
-$arguments = new Arguments();
+$event = new Event('empty', $parameters);
+$parameters = new Parameters();
 
 /*
 # Full
@@ -159,8 +158,8 @@ within aggregate 'carts':
 };
 */
 $aggregate->add_event($event);
-$event = new Event('full', $arguments);
-$arguments = new Arguments();
+$event = new Event('full', $parameters);
+$parameters = new Parameters();
 
 /*
 # Products
@@ -172,10 +171,10 @@ within aggregate 'carts':
 */
 $aggregate->add_property('products', 'index');
 
-$event = new Event('product-quantity-changed', $arguments);
-$arguments = new Arguments();
-$arguments->add('product_id', 'identifier');
-$arguments->add('quantity', 'value\quantity');
+$event = new Event('product-quantity-changed', $parameters);
+$parameters = new Parameters();
+$parameters->add('product_id', 'identifier');
+$parameters->add('quantity', 'value\quantity');
 
 /*
 # Products
@@ -191,9 +190,9 @@ within aggregate 'carts':
 };
 */
 $aggregate->add_event($event);
-$event = new Event('product-added', $arguments);
-$arguments = new Arguments();
-$arguments->add('product', 'entity\product');
+$event = new Event('product-added', $parameters);
+$parameters = new Parameters();
+$parameters->add('product', 'entity\product');
 
 $aggregate->add_event_handler($event_handler);
 $event_handler = new EventHandler($event, $update_statment);
@@ -216,9 +215,9 @@ within aggregate 'carts':
 };
 */
 $aggregate->add_event($event);
-$event = new Event('product-removed', $arguments);
-$arguments = new Arguments();
-$arguments->add('product_id', 'identifier');
+$event = new Event('product-removed', $parameters);
+$parameters = new Parameters();
+$parameters->add('product_id', 'identifier');
 
 $aggregate->add_event_handler($event_handler);
 $event_handler = new EventHandler($event, $update_statment);
@@ -243,9 +242,9 @@ within aggregate 'carts':
 };
 */
 $aggregate->add_command($command);
-$command = new Command('create', $arguments);
-$arguments = new Arguments();
-$arguments->add('shopper_id', 'identifier');
+$command = new Command('create', $parameters);
+$parameters = new Parameters();
+$parameters->add('shopper_id', 'identifier');
 
 $aggregate->add_comamnd_handler($command_handler);
 $command_handler = new CommandHandler($event, $update_statment);
@@ -307,3 +306,13 @@ within aggregate 'carts':
 	);
 };
 */
+
+
+/**
+ * Sending a command to this system
+ */
+$command = new Command('create', $arguments);
+$arguments = new Arguments();
+$arguments->add('shopper_id', '037c47d9-0a50-4a22-8a60-ec0f27f3d41e');
+
+$aggregate->handle($command);

@@ -31,10 +31,10 @@ within aggregate 'carts':
 */
 $aggregate->add_invariant($invariant);
 
-$invariant = new Invariant('shopper-has-active-cart', $arguments, $invariant_query);
+$invariant = new Invariant('shopper-has-active-cart', $parameters, $invariant_query);
 
-$arguments = new Arguments();
-$arguments->add('shopper_id', 'identifier');
+$parameters = new Parameters();
+$parameters->add('shopper_id', 'identifier');
 
 $invariant_query = new InvariantQuery();
 $invariant_query->from_all($aggregator_statement)
@@ -63,9 +63,9 @@ within aggregate 'carts':
 */
 $aggregate->add_invariant($invariant);
 
-$invariant = new Invariant('created', $arguments, $invariant_query);
+$invariant = new Invariant('created', $parameters, $invariant_query);
 
-$arguments = new Arguments();
+$parameters = new Parameters();
 
 $invariant_query = new InvariantQuery();
 $invariant_query->from_aggregate($check_statement);
@@ -87,9 +87,9 @@ within aggregate 'carts':
 */
 $aggregate->add_invariant($invariant);
 
-$invariant = new Invariant('checked-out', $arguments, $invariant_query);
+$invariant = new Invariant('checked-out', $parameters, $invariant_query);
 
-$arguments = new Arguments();
+$parameters = new Parameters();
 
 $invariant_query = new InvariantQuery();
 $invariant_query->from_aggregate($check_statement);
@@ -110,9 +110,9 @@ within aggregate 'carts':
 */
 $aggregate->add_invariant($invariant);
 
-$invariant = new Invariant('is-empty', $arguments, $invariant_query);
+$invariant = new Invariant('is-empty', $parameters, $invariant_query);
 
-$arguments = new Arguments();
+$parameters = new Parameters();
 
 $invariant_query = new InvariantQuery();
 $invariant_query->from_aggregate($check_statement);
@@ -134,9 +134,9 @@ within aggregate 'carts':
 */
 $aggregate->add_invariant($invariant);
 
-$invariant = new Invariant('is-full', $arguments, $invariant_query);
+$invariant = new Invariant('is-full', $parameters, $invariant_query);
 
-$arguments = new Arguments();
+$parameters = new Parameters();
 
 $invariant_query = new InvariantQuery();
 $invariant_query->from_aggregate($check_statement);
