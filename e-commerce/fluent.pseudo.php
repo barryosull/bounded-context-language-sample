@@ -22,6 +22,9 @@
 /**
  * Notes:
  * Need more examples of ValueObjects
+ * Index should probably define its type, eg (Product)
+ * Not happy with update statements, they need work/rejigging
+ * "Arguments" objects are really "Properties"
  */
 
 # Environment
@@ -64,19 +67,26 @@ $check_statement->check('>', '0');
 $context->add_entity($entity);
 
 $entity = new Entity('product', $arguments);
-
 $arguments = new Arguments();
 $arguments->add('id', 'identifier');
 $arguments->add('quantity', 'value\quantity');
+
 
 /*
 # Created
 within aggregate 'carts':
 {
 	create boolean 'is_created' defaults (false);
-
 	create identifier 'shopper_id' defaults (null);
+};
+*/
+$aggregate->add_property('is_created', 'boolean', false);
+$aggregate->add_property('shopper_id', 'identifier', null);
 
+/*
+# Created
+within aggregate 'carts':
+{
 	create event 'created' (shopper_id) as (identifier) handled by (
 		<:
 			update aggregate
@@ -85,12 +95,31 @@ within aggregate 'carts':
 		:>
 	);
 };
+*/
+$aggregate->add_event($event);
+$event = new Event('created', $arguments);
+$arguments = new Arguments();
+$arguments->add('shopper_id', 'identifier');
 
+$aggregate->add_event_handler($event_handler);
+$event_handler = new EventHandler($event, $update_statment);
+$update_statment = new UpdateStatement();
+$update_statment->set('is_created', true);
+$update_statment->set('shopper_id', 'shopper_id');
+
+/*
 # Checked Out
 within aggregate 'carts':
 {
 	create boolean 'is_checked_out' defaults (false);
+};
+*/
+$aggregate->add_value('is_checked_out', 'boolean', false);
 
+/*
+# Checked Out
+within aggregate 'carts':
+{
 	create event 'checked-out' handled by (
 		<:
 			update aggregate
@@ -98,26 +127,60 @@ within aggregate 'carts':
 		:>
 	);
 };
+*/
+$aggregate->add_event($event);
+$event = new Event('checked-out', $arguments);
+$arguments = new Arguments();
 
+$aggregate->add_event_handler($event_handler);
+$event_handler = new EventHandler($event, $update_statment);
+$update_statment = new UpdateStatement();
+$update_statment->set('is_checked_out', true);
+
+/*
 # Empty
 within aggregate 'carts':
 {
 	create counter 'products_in_cart' defaults (0);
- * 
 	create event 'empty';
 };
+*/
+$aggregate->add_property('products_in_cart', 'counter', 0);
 
+$aggregate->add_event($event);
+$event = new Event('empty', $arguments);
+$arguments = new Arguments();
+
+/*
 # Full
 within aggregate 'carts':
 {
 	create event 'full';
 };
+*/
+$aggregate->add_event($event);
+$event = new Event('full', $arguments);
+$arguments = new Arguments();
 
+/*
 # Products
 within aggregate 'carts':
 {
 	create index 'products';
+    create event 'product-quantity-changed' (product_id, quantity) as (identifier, value\quantity);
+};
+*/
+$aggregate->add_property('products', 'index');
 
+$event = new Event('product-quantity-changed', $arguments);
+$arguments = new Arguments();
+$arguments->add('product_id', 'identifier');
+$arguments->add('quantity', 'value\quantity');
+
+/*
+# Products
+within aggregate 'carts':
+{
 	create event 'product-added' (product) as (entity\product) handled by (
 		<:
 			update aggregate
@@ -125,7 +188,24 @@ within aggregate 'carts':
 				add to index 'products' (product.id)
 		:>
 	);
+};
+*/
+$aggregate->add_event($event);
+$event = new Event('product-added', $arguments);
+$arguments = new Arguments();
+$arguments->add('product', 'entity\product');
 
+$aggregate->add_event_handler($event_handler);
+$event_handler = new EventHandler($event, $update_statment);
+$update_statment = new UpdateStatement();
+$update_statment->increment('products_in_cart');
+$update_statment->add_to_index('products', $index_key);
+$index_key = new IndexKey('product', 'id');
+
+/*
+# Products
+within aggregate 'carts':
+{
 	create event 'product-removed' (product_id) as (identifier) handled by (
 		<:
 			update aggregate
@@ -133,10 +213,19 @@ within aggregate 'carts':
 				remove product.id from index 'products'
 		:>
 	);
-
-	create event 'product-quantity-changed' (product_id, quantity) as (identifier, value\quantity);
 };
 */
+$aggregate->add_event($event);
+$event = new Event('product-removed', $arguments);
+$arguments = new Arguments();
+$arguments->add('product_id', 'identifier');
+
+$aggregate->add_event_handler($event_handler);
+$event_handler = new EventHandler($event, $update_statment);
+$update_statment = new UpdateStatement();
+$update_statment->decrement('products_in_cart');
+$update_statment->remove_from_index('products', $index_key);
+$index_key = new IndexKey('product', 'id');
 
 /*
 # Commands
@@ -151,7 +240,32 @@ within aggregate 'carts':
 			apply event 'empty';
 		}>
 	);
+};
+*/
+$aggregate->add_command($command);
+$command = new Command('create', $arguments);
+$arguments = new Arguments();
+$arguments->add('shopper_id', 'identifier');
 
+$aggregate->add_comamnd_handler($command_handler);
+$command_handler = new CommandHandler($event, $update_statment);
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = new InvariantAssertion('created', 'not');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = new InvariantAssertion('shopper-has-active-cart', 'not', $argument);
+$argument = new Argument('command', 'shopper_id');
+
+$command_handler->add_apply_event('created', $argument);
+$argument = new Argument('command', 'shopper_id');
+
+$command_handler->add_apply_event('empty');
+
+/*
+# Commands
+within aggregate 'carts':
+{
 	create command 'add-product' (product) as (entity\product) handled by (
 		<{
 			assert invariant not 'checked-out';
@@ -192,5 +306,4 @@ within aggregate 'carts':
 		}>
 	);
 };
-
 */
