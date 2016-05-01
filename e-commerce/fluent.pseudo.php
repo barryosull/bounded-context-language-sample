@@ -8,10 +8,6 @@
  * - Entities
  * - Invariants
  * - ValueObjects
- */
-
-/**
- * To be converted into code
  * - Events
  * - Commands
  * - State properties
@@ -250,16 +246,21 @@ $aggregate->add_comamnd_handler($command_handler);
 $command_handler = new CommandHandler($event, $update_statment);
 
 $command_handler->add_invariant_assertion($asseration);
-$assertion = new InvariantAssertion('created', 'not');
+$assertion = InvariantAssertion::not('created');
 
 $command_handler->add_invariant_assertion($asseration);
-$assertion = new InvariantAssertion('shopper-has-active-cart', 'not', $argument);
-$argument = new Argument('command', 'shopper_id');
+$assertion = InvariantAssertion::not('shopper-has-active-cart', $arguments);
+$arguments = new Arguments();
+$arguments->append($property_accessor);
+$property_accessor = new PropertyAccessor('command', 'shopper_id');
 
-$command_handler->add_apply_event('created', $argument);
-$argument = new Argument('command', 'shopper_id');
+$command_handler->add_apply_event('created', $arguments);
+$arguments = new Arguments();
+$arguments->append($property_accessor);
+$property_accessor = new PropertyAccessor('command', 'shopper_id');
 
 $command_handler->add_apply_event('empty');
+
 
 /*
 # Commands
@@ -267,6 +268,7 @@ within aggregate 'carts':
 {
 	create command 'add-product' (product) as (entity\product) handled by (
 		<{
+            assert invariant 'created';
 			assert invariant not 'checked-out';
 			assert invariant not 'is-full';
 			assert invariant not 'product-exists' (command.product.id);
@@ -276,36 +278,141 @@ within aggregate 'carts':
 			apply event 'full' when assert invariant 'is-full';
 		}>
 	);
+*/
+$aggregate->add_command($command);
+$command = new Command('add-product', $parameters);
+$parameters = new Parameters();
+$parameters->add('product', 'entity\product');
 
+$aggregate->add_comamnd_handler($command_handler);
+$command_handler = new CommandHandler($event, $update_statment);
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::is('created');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::not('checked-out');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::not('is-full');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::not('product-exists', $arguments);
+$arguments = new Arguments();
+$arguments->append($property_accessor);
+$property_accessor = new PropertyAccessor('command', 'product');
+
+$command_handler->add_apply_event('product-added', $arguments);
+$arguments = new Arguments();
+$arguments->append($property_accessor);
+$property_accessor = new PropertyAccessor('command', 'shopper_id');
+
+$command_handler->add_apply_event('full')->when($assertion);
+$assertion = InvariantAssertion::is('is-full');
+
+
+/*
 	create command 'change-product-quantity' (product_id, quantity) as (identifier, value\quantity) handled by (
 		<{
+            assert invariant 'created';
 			assert invariant not 'checked-out';
 			assert invariant 'product-exists' (command.product_id); 
 
 			apply event 'product-quantity-changed' (command.product_id, command.quantity); 
 		}>
 	);
+*/
+$aggregate->add_command($command);
+$command = new Command('change-product-quantity', $parameters);
+$parameters = new Parameters();
+$parameters->add('product_id', 'identifier');
+$parameters->add('quantity', 'value\quantity');
 
+$aggregate->add_comamnd_handler($command_handler);
+$command_handler = new CommandHandler($event, $update_statment);
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::is('created');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::not('checked-out');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::is('product-exists', $arguments);
+$arguments = new Arguments();
+$arguments->append(new PropertyAccessor('command', 'product_id'));
+
+$command_handler->add_apply_event('product-quantity-changed', $arguments);
+$arguments = new Arguments();
+$arguments->append(new PropertyAccessor('command', 'product_id'));
+$arguments->append(new PropertyAccessor('command', 'quantity'));
+
+
+/*
 	create command 'remove-product' (product_id) as (identifier) handled by (
 		<{
+            assert invariant 'created';
 			assert invariant not 'checked-out';
 			assert invariant 'product-exists' (command.product_id);
 
 			apply event 'product-removed' (command.product_id);
-
 			apply event 'empty' when assert invariant 'is-empty';
 		}>
 	);
+*/ 
+$aggregate->add_command($command);
+$command = new Command('remove-product', $parameters);
+$parameters = new Parameters();
+$parameters->add('product_id', 'identifier');
 
+$aggregate->add_comamnd_handler($command_handler);
+$command_handler = new CommandHandler($event, $update_statment);
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::is('created');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::not('checked-out');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::is('product-exists', $arguments);
+$arguments = new Arguments();
+$arguments->append(new PropertyAccessor('command', 'product_id'));
+
+$command_handler->add_apply_event('product-removed', $arguments);
+$arguments = new Arguments();
+$arguments->append(new PropertyAccessor('command', 'product_id'));
+
+$command_handler->add_apply_event('empty')->when($assertion);
+$assertion = InvariantAssertion::is('is-empty');
+
+
+/*
 	create command 'checkout' handled by (
 		<{
+            assert invariant 'created';
 			assert invariant not 'checked-out';
-
+  
 			apply event 'checked-out';
 		}>
 	);
 };
 */
+$aggregate->add_command($command);
+$command = new Command('checkout', $parameters);
+$parameters = new Parameters();
+$parameters->add('product_id', 'identifier');
+
+$aggregate->add_comamnd_handler($command_handler);
+$command_handler = new CommandHandler($event, $update_statment);
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::is('created');
+
+$command_handler->add_invariant_assertion($asseration);
+$assertion = InvariantAssertion::not('checked-out');
+
+$command_handler->add_apply_event('checked-out');
 
 
 /**
